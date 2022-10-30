@@ -8,11 +8,6 @@ const modalRoot = document.querySelector('#modal-root');
 export function Modal ({closeModal, url}) {
 
     
-const handleKeyDown = e => {
-        if (e.code === 'Escape') {
-            closeModal();
-        }
-    }
 
   const  handleBackdropClick = e => {
         if(e.currentTarget === e.target) {
@@ -21,10 +16,24 @@ const handleKeyDown = e => {
     }
 
     useEffect(() => {
+
+const handleKeyDown = e => {
+        if (e.code === 'Escape') {
+            closeModal();
+        }
+    }
+
         window.addEventListener('keydown', handleKeyDown)
         return () => {  window.removeEventListener('keydown', handleKeyDown)}
-    },[handleKeyDown])
+    },[closeModal])
 
+    // componentDidMount () {
+    //     window.addEventListener('keydown', this.handleKeyDown)
+    // }
+
+    // componentWillUnmount () {
+    //     window.removeEventListener('keydown', this.handleKeyDown)
+    // }
 
     
         return createPortal(
