@@ -27,13 +27,7 @@ const handleKeyDown = e => {
         return () => {  window.removeEventListener('keydown', handleKeyDown)}
     },[closeModal])
 
-    // componentDidMount () {
-    //     window.addEventListener('keydown', this.handleKeyDown)
-    // }
 
-    // componentWillUnmount () {
-    //     window.removeEventListener('keydown', this.handleKeyDown)
-    // }
 
     
         return createPortal(

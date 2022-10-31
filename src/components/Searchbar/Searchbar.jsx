@@ -1,39 +1,24 @@
-import React, { Component } from "react"
+import React, { useState } from "react"
 import {Header, Form, Button, Span, Input} from "components/Searchbar/Searchbar.styled"
 import PropTypes from 'prop-types';
-export class Searchbar extends Component{
-     state = {
-       name : ""
+
+export function Searchbar ({onSubmit}) {
+const [name, setName] = useState("")   
+
+  const handleInputChange = event => {
+    setName(event.currentTarget.value)
   }
   
-    handleInputChange = event => {
-    const {name, value} = event.currentTarget
-    this.setState(
-      {
-        [name]: value,
-      })
-  }
-  
-  handleSubmit = e => {
-    e.preventDefault();
-    this.props.onSubmit(this.state)
-    this.reset()
-    
+  const reset = () => {
+       setName("")
     }
 
-  reset = () => {
-        this.setState({
-    name: '',
-    })
-    }
-
-  render() {
-       const { name } = this.state
-        return (
-            <Header className="searchbar">
-  <Form className="form" onSubmit={(e) => {e.preventDefault();
-                    this.props.onSubmit(name);
-                    this.reset()}}>
+  return (
+    <Header className="searchbar">
+     <Form className="form" onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(name);
+        reset() }}>
     <Button type="submit" className="button">
       <Span className="button-label">Search</Span>
     </Button>
@@ -42,7 +27,7 @@ export class Searchbar extends Component{
       className="input"
       name="name"
       value={name}
-      onChange={this.handleInputChange}
+      onChange={handleInputChange}
       type="text"
       autoComplete="off"
       autoFocus
@@ -53,7 +38,7 @@ export class Searchbar extends Component{
         )
     }    
     
-}
+
 Searchbar.propTypes = {
     onSubmit: PropTypes.func,
 }

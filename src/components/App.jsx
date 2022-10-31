@@ -1,91 +1,77 @@
-import React, { Component } from "react"
-import axios from "axios"
+import React, { useState, useEffect } from "react"
+
 import { Searchbar } from "components/Searchbar/Searchbar"
 import { ImageGallery } from 'components/ImageGallery/ImageGallery'
 import { Button } from "./Button/Button"
 import { Modal } from "./Modal/Modal";
 import { ThreeDots } from "react-loader-spinner";
+import {getFetchImages} from "components/API/Api"
 
-const apiKey = "29821254-cc8d55b85aa42c363f8211fb8"
-const baseUrl = "https://pixabay.com/api/?"
+export function App() {
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [name, setName] = useState("");
+  const [chosenLargeImageURL, setChosenLargeImageURL] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null)
 
-export class App extends Component {
-  state = {
-    images: [],
-    page: 1,
-    name: "",
-    chosenLargeImageURL: "",
-    isLoading: false,
-    error: null
-  }
-onOpenModalWithLargeImage = (url) => {
-    this.setState({
-      chosenLargeImageURL: url,
-    })
+ 
+const onOpenModalWithLargeImage = (url) => {
+    setChosenLargeImageURL(url)
   }
 
-  onModalClose = () => {
-    this.setState({
-      chosenLargeImageURL: "",
-    })
+  const onModalClose = () => {
+    setChosenLargeImageURL("")
   }
 
-
- pushImagesToState = (response) => {
-    const imagesFromResponse = response.data.hits;
-    let newSearchArray = [];
-    newSearchArray = [...this.state.images, ...imagesFromResponse];
-    this.setState(({ images }) => ({ images: newSearchArray }));
-  };
-
-  formSubmitHandler = (name) => {
+ const formSubmitHandler = (name) => {
     if (name.trim().length === 0) {
       alert('Please, enter request');
       return
     }
-
-    this.setState({
-      images: [],
-    page: 1,
-    name
-  })
+   setImages([]);
+   setPage(1)
+   setName(name)
   };
   
-  loadMore = () => {
-    this.setState(prevState => ({
-    page : prevState.page + 1
-  }))
+  const loadMore = () => {
+    setPage(state =>  {return state + 1})
   }
   
+useEffect(() => {
+    async function fetchData() {
+      const fetchImages = await getFetchImages(name, page);
 
-  
-  componentDidUpdate(_, prevState) {
-    if (prevState.page !== this.state.page || prevState.name !== this.state.name) {
-    
-      try {   
-        
-        this.setState({isLoading : true})
-        axios.get(`${baseUrl}q=${this.state.name}&page=${this.state.page}&key=${apiKey}&image_type=photo&orientation=horizontal&per_page=12`).then(response => {
-          if (response.data.hits.length > 0) { this.pushImagesToState(response) } else {alert ('No images found');}
+      const requiredPropertiesImages = fetchImages.hits.map(
+        ({ id, webformatURL, largeImageURL, tags }) => ({
+          id,
+          webformatURL,
+          largeImageURL,
+          tags,
         })
-      
-      } catch (error) {
-        this.setState({
-          error: error.message,
-          isLoading: false
-        })
-      } finally {
-        this.setState({ isLoading: false }) 
-      }
+      );
+
+      setImages(images => [...images, ...requiredPropertiesImages]);
+      setIsLoading(false);
     }
-  }
 
-  render() {
-    let {images, chosenLargeImageURL, isLoading, error} = this.state
+    if (name.trim() === '') {
+      return;
+    }
+
+    try {
+      fetchData();
+    } catch (error) {
+      setError(error.message);
+    }
+  }, [name, page]);
+
+
+  
     return (
       <>
-        <Searchbar onSubmit={this.formSubmitHandler} />
-        <ImageGallery images={this.state.images} onClick={this.onOpenModalWithLargeImage} />
+        <Searchbar onSubmit={formSubmitHandler} />
+        <ImageGallery images={images} onClick={onOpenModalWithLargeImage} />
         {error && <p>{error}</p>}
         {isLoading && (<ThreeDots
           height="50"
@@ -93,11 +79,10 @@ onOpenModalWithLargeImage = (url) => {
           color='#303f9f'
           ariaLabel='loading'
         />)}
-        {images.length > 0 && <Button loadMore= {this.loadMore} /> }
-        {chosenLargeImageURL && (<Modal closeModal={this.onModalClose} url={chosenLargeImageURL}/>)}
-        
-      
+        {images.length > 0 && <Button loadMore= {loadMore} /> }
+        {chosenLargeImageURL && (<Modal closeModal={onModalClose} url={chosenLargeImageURL}/>)}
+    
       </>
     )
   }
-}
+
